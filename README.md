@@ -1,9 +1,10 @@
-Cloud Computing Assignment
-==========================
+Cloud Builder
+================
 
-Assignment due for the Cloud Computing module of the Msc in Computer and
-Softwares Techniques in Engineering, Option Distributed Computing and
-e-science.
+Project built for an assignment for the Cloud Computing module of the Msc in
+Computer and Softwares Techniques in Engineering, Option Distributed Computing
+and e-science. Then upgraded in the scope of the Msc Thesis to deploy a container
+cloud and executing load balancing experiments.
 
 Usage
 -----
@@ -17,40 +18,8 @@ Usage
 # Destroy it and its network
 ./create_cluster.rb --purge
 
---- Following options have been used for debugging
-
 # Rewrite ansible hosts file according to existing cloud
 ./create_cluster.rb --ansible
-
-# Rewrite mpi machine file according to existing cloud
-./create_cluster.rb --mpi
-```
-
-### MPI scripts
-
-```
-# Run all the experiments (/!\ LONG) with all kind of cluster/matrices
-./run_experiment.sh
-
-# In the 'mpi' directory
-
-# Run a benchmark for every kind of matrix 128/256/512/1024/1360 (they are generated if necessary)
-# for the current cluster at a given flavor. <flavor> must be an integer.
-./benchmark.sh <flavor>
-
-# Run a specific experiment, upload the result on swift
-./run_matrix_multiply.sh <hosts file> <m1> <m2> <swift_container> <mout> [nb processes per node]
-# Example
-./run_matrix_multiply.sh hosts matrices/matrix_1024 matrices/matrix_1024 experiment_1024_results results 2
-```
-
-### Tool script
-
-```
-# Generate a random matrix, print on the standard output
-./matrix_gen.rb <width> <height>
-```
-
 
 Configuration from environment
 ------------------------------
