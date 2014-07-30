@@ -1,0 +1,87 @@
+- hosts: all
+  sudo: True
+
+  tasks: 
+    - name: Install apt deps
+      action: apt pkg={{ item }} state=latest
+      with_items:
+        - unzip
+        - git
+        - nodejs
+        - npm
+        - redis-server
+        - bind9
+        - build-essential
+        - libssl-dev
+        - python3
+        - python3-pip
+        - python3-setuptools
+
+    - name: Checkout balancer Controller
+      action: git repo=https://github.com/Soulou/msc-thesis-container-balancer-controller.git dest=/opt/container-balancer-controller
+
+    - name: Install vpack
+      action: shell LANG=en_US.UTF-8 pip3 install git+git://github.com/Soulou/vpack --process-dependency-links
+
+    - name: Install dependencies of Controller
+      action: shell cd /opt/container-balancer-controller && pip3 install -r requirements.txt
+
+    - name: Checkout balancer client
+      action: git repo=https://github.com/Soulou/msc-thesis-container-balancer-client.git dest=/opt/container-balancer-client
+
+    - name: Install dependencies of Client
+      action: shell cd /opt/container-balancer-client && pip3 install -r requirements.txt
+
+    - name: Setup init file for controller
+      action: copy src=files/container-balancer-controller.init dest=/etc/init/container-balancer-controller.conf mode=0644
+
+    - name: Start controller
+      service: name=container-balancer-controller state=restarted
+
+    - name: Install wrk
+      action: shell git clone https://github.com/wg/wrk.git && cd wrk && make && mv ./wrk /usr/bin/wrk && cd .. && rm -rf ./wrk
+      args:
+          creates: /usr/bin/wrk
+
+    - name: Install hipache
+      action: shell npm install -g hipache
+      args:
+          creates: /usr/local/bin/hipache
+
+    - name: Create hipach log directory
+      action: file path=/var/log/hipache state=directory mode=0755
+
+    - name: setup hipache configuration
+      action: copy src=files/hipache.conf dest=/etc/hipache.conf
+
+    - name: setup hipache init
+      action: copy src=files/hipache.init dest=/etc/init/hipache.conf
+
+    - name: create bind thesis.dev zone
+      action: copy src=files/bind-thesis.dev.zone dest=/etc/bind/thesis.dev.zone
+
+    - name: configure bind to use thesis.dev zone
+      action: copy src=files/bind-named.conf.local dest=/etc/bind/named.conf.local
+
+    - name: use localhost as DNS (update resolv.conf)
+      action: copy src=files/controller-resolv.conf dest=/etc/resolv.conf
+       
+    - name: Install consul
+      action: shell http_proxy=http://10.7.0.1:3128 https_proxy=https://10.7.0.1:3128 HTTP_PROXY=http://10.7.0.1:3128 HTTPS_PROXY=https://10.7.0.1:3128 curl -Lo /tmp/consul.zip https://dl.bintray.com/mitchellh/consul/0.3.0_linux_amd64.zip && cd /tmp && unzip consul.zip && sudo mv consul /usr/bin/consul && rm ./consul.zip
+      args:
+          creates: /usr/bin/consul
+
+    - name: Create consul config directory
+      action: file path=/etc/consul.d state=directory mode=0755
+
+    - name: Copy consul config file for controller
+      action: copy src=files/container-balancer-controller.consul dest=/etc/consul.d/container-balancer-controller.json mode=0644
+
+    - name: Create service for consul
+      action: template src=files/controller-consul.init.j2 dest=/etc/init/consul.conf mode=0644
+
+    - name: Start consul
+      service: name=consul state=restarted
+
+    - name: Set eth0 static configuration for DNS
+      action: template src=files/controller-eth0.cfg.j2 dest=/etc/network/interfaces.d/eth0.cfg

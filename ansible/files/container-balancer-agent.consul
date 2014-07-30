@@ -1,0 +1,2 @@
+{"service": {"name": "agent", "tags": ["agent", "docker"], "port": 5000}}
+

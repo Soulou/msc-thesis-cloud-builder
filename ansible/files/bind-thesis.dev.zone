@@ -1,0 +1,11 @@
+$TTL 3600
+@	IN	SOA	thesis.dev admin.thesis.dev (
+                                        2007011601 ; Serial
+                                        28800      ; Refresh
+                                        1800       ; Retry
+                                        604800     ; Expire - 1 week
+                                        86400 )    ; Minimum
+	IN	NS	gateway
+	IN	A	127.0.0.1
+*	IN	A	127.0.0.1
+

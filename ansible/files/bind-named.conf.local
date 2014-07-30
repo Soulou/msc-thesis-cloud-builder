@@ -1,0 +1,5 @@
+zone "thesis.dev" {
+        type master;
+        file "/etc/bind/thesis.dev.zone";
+};
+

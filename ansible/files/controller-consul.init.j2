@@ -1,0 +1,14 @@
+description "Run consul discovery service"
+author "leo.unbekandt@cranfield.ac.uk"
+
+start on runlevel [2345]
+stop on runlevel [016]
+
+respawn
+
+setuid root
+setgid root
+
+exec consul agent -advertise {{ ansible_eth0["ipv4"]["address"] }} -node {{ ansible_hostname }} -server -data-dir /var/consul -config-dir=/etc/consul.d -bootstrap
+
+

@@ -33,7 +33,7 @@ def create_cloud
   end
   puts "Waiting for the VMs to finalize their boot"
   sleep 30
-  mpi_cloud(b)
+  # mpi_cloud(b)
   ansible_cloud(b)
 end
 
@@ -53,7 +53,8 @@ def ansible_cloud(b = Cloud::Builder.new)
   FileUtils.mkdir_p ansible_dir
   b.write_hostsfile File.join(ansible_dir, "hosts"), :type => "ansible"
   FileUtils.cd ansible_dir
-  system "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -c paramiko -i hosts mpi.yml --sudo"
+  system "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts agent.yml -l agents --sudo"
+  system "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts controller.yml -l controller --sudo"
 end
 
 def mpi_cloud(b = Cloud::Builder.new)

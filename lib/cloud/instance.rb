@@ -4,6 +4,10 @@ module Cloud
 
     attr_reader :ip
 
+    def self.last_id=(value)
+      $last_id = value
+    end
+
     def initialize(conn, opts = {})
       @conn = conn
       if opts.has_key? :instance
@@ -12,8 +16,8 @@ module Cloud
 	  @ip = @instance.addresses.last.address
         end
       else
-        $last_id += 1
-        @instance = build_instance $last_id
+	$last_id += 1
+	@instance = build_instance $last_id
       end
     end
 

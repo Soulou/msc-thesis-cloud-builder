@@ -1,0 +1,7 @@
+#!/bin/bash
+
+nodes=$(cat hosts | grep 10.7 | cut -d '=' -f2 | cut -d ' ' -f 1)
+
+for node in $nodes ; do
+	ssh ubuntu@$node $* &
+done

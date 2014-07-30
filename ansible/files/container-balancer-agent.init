@@ -1,0 +1,17 @@
+description "Agent of the container balancer"
+author "leo.unbekandt@cranfield.ac.uk"
+
+start on runlevel [2345]
+stop on runlevel [016]
+
+respawn
+
+setuid root
+setgid root
+
+env PORT=5000
+chdir /opt/container-balancer-agent
+
+exec ./agent.py
+
+

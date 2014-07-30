@@ -1,0 +1,58 @@
+- hosts: all
+  sudo: True
+
+  tasks: 
+    - name: Setup docker proxy configuration
+      action: copy src=files/docker.conf dest=/etc/default/docker mode=0644
+
+    - name: Install GIT and Python
+      action: apt pkg={{ item }} state=latest
+      with_items:
+        - linux-image-extra-3.13.0-32-generic
+        - unzip
+        - git
+        - python3
+        - python3-pip
+        - python3-setuptools
+
+    - name: Add Docker repository and install it
+      action: shell curl -s https://get.docker.io | sudo sh
+      args:
+          creates: /usr/bin/docker
+
+    - name: Checkout balancer Agent
+      action: git repo=https://github.com/Soulou/msc-thesis-container-balancer-agent.git dest=/opt/container-balancer-agent
+
+    - name: Install dependencies
+      action: shell cd /opt/container-balancer-agent && pip3 install -r requirements.txt
+
+    - name: Get docker image for fibonacci service
+      action: shell docker pull soulou/msc-thesis-fibo-http-service
+
+    - name: Get docker image for memory service
+      action: shell docker pull soulou/msc-thesis-memory-http-service
+
+    - name: Setup init file for agent
+      action: copy src=files/container-balancer-agent.init dest=/etc/init/container-balancer-agent.conf mode=0644
+
+    - name: Start agent
+      service: name=container-balancer-agent state=restarted
+
+    - name: Install consul
+      action: shell http_proxy=http://10.7.0.1:3128 https_proxy=https://10.7.0.1:3128 HTTP_PROXY=http://10.7.0.1:3128 HTTPS_PROXY=https://10.7.0.1:3128 curl -Lo /tmp/consul.zip https://dl.bintray.com/mitchellh/consul/0.3.0_linux_amd64.zip && cd /tmp && unzip consul.zip && sudo mv consul /usr/bin/consul && rm ./consul.zip
+      args:
+          creates: /usr/bin/consul
+
+    - name: Create consul config directory
+      action: file path=/etc/consul.d state=directory mode=0755
+
+    - name: Copy consul config file for agent
+      action: copy src=files/container-balancer-agent.consul dest=/etc/consul.d/container-balancer-agent.json mode=0644
+
+    - name: Create service for consul
+      action: template src=files/consul.init.j2 dest=/etc/init/consul.conf mode=0644
+
+    - name: Start consul
+      service: name=consul state=restarted
+
+
