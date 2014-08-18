@@ -1,2 +1,0 @@
-{"service": {"name": "controller", "tags": ["controller", "balancer", "container"], "port": 5001}}
-

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-{% for host in groups['agents'] %}
-consul join {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
-{% endfor %}
